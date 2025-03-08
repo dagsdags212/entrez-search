@@ -6,6 +6,8 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
+    import os
+    import sys
     from pathlib import Path
     import asyncio
 
@@ -18,7 +20,16 @@ def _():
 
     Entrez.email = "jegsamson.dev@gmail.com"
     Entrez.tool = "biopython"
-    return Entrez, GT, Path, SeqIO, alt, asyncio, mo, pl
+    return Entrez, GT, Path, SeqIO, alt, asyncio, mo, os, pl, sys
+
+
+@app.cell
+def _(Path, sys):
+    # Check system platform.
+    sys.platform
+
+    Path.home()
+    return
 
 
 @app.cell
@@ -41,7 +52,7 @@ def _(Entrez, mo):
     )
 
     retmax = mo.ui.number(
-        start=5, stop=10000, step=10,
+        start=5, stop=10000, step=5,
         value=50,
         debounce=True,
         label="Limit records to:",
@@ -83,8 +94,8 @@ def _(Entrez, Path, SeqIO, mo, pl):
         """Downloads a single GenBank record from a given identifier."""
         handle = Entrez.efetch(db="nuccore", id=id, rettype="gb", retmode="text")
         record = SeqIO.read(handle, "gb")
-    
-        outdir = Path("data")
+
+        outdir = Path.home() / "entrez_data"
         if not outdir.exists():
             outdir.mkdir(exist_ok=True)
 
@@ -100,7 +111,7 @@ def _(Entrez, Path, SeqIO, mo, pl):
         handle = Entrez.efetch(db="nuccore", id=id, rettype="fasta", retmode="text")
         record = SeqIO.read(handle, "fasta")
 
-        outdir = Path("data")
+        outdir = Path.home() / "entrez_data"
         if not outdir.exists():
             outdir.mkdir(exist_ok=True)
 
@@ -110,7 +121,7 @@ def _(Entrez, Path, SeqIO, mo, pl):
             return
 
         SeqIO.write(record, outfile, "fasta")
-    
+
 
     def batch_download_gb(id_list: list) -> None:
         """Retrieve a set of GenBank records using Entrez esearch."""
@@ -125,7 +136,9 @@ def _(Entrez, Path, SeqIO, mo, pl):
             for id in id_list:
                 bar.update(title="Downloading files", subtitle=f"Fetching GBK file for {id}")
                 download_genbank_record(id, bar)
-            
+        
+            bar.update(title="Download complete", subtitle=f"Files saved to {Path.home() / 'entrez_data'}")
+
     def batch_download_fasta(id_list: list) -> None:
         """Retrieve a set of GenBank records using Entrez esearch."""
         with mo.status.progress_bar(
@@ -133,12 +146,13 @@ def _(Entrez, Path, SeqIO, mo, pl):
             title="Downloading FASTA files",
             subtitle="Please wait",
             show_rate=True, show_eta=True,
-            completion_title=f"Done!"
         ) as bar: 
 
             for id in id_list:
                 bar.update(title="Downloading files", subtitle=f"Fetching FASTA file for {id}")
                 download_fasta_file(id, bar)
+
+            bar.update(title="Download complete", subtitle=f"Files saved to {Path.home() / 'entrez_data'}")
     return (
         batch_download_fasta,
         batch_download_gb,
