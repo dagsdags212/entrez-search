@@ -1,5 +1,7 @@
 # Entrez Query Builder
 
+[![marimo](https://marimo.io/shield.svg)](https://marimo.io/p/@jegsamson/entrez-search?show-code=false)
+
 A simplified front-end for querying and downloading files from Entrez databases.
 
 ### Usage
