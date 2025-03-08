@@ -24,15 +24,6 @@ def _():
 
 
 @app.cell
-def _(Path, sys):
-    # Check system platform.
-    sys.platform
-
-    Path.home()
-    return
-
-
-@app.cell
 def _(Entrez, mo):
     db_list = Entrez.read(Entrez.einfo())["DbList"]
     db_dropdown = mo.ui.dropdown(
@@ -46,16 +37,16 @@ def _(Entrez, mo):
     query = mo.ui.text(
         value="Ebola virus",
         label="",
-        placeholder="Query string",
+        placeholder="Enter your query",
         kind="text",
-        full_width=True
+        full_width=True,
     )
 
     retmax = mo.ui.number(
         start=5, stop=10000, step=5,
         value=50,
         debounce=True,
-        label="Limit records to:",
+        label="",
         full_width=True,
     )
     return db_dropdown, db_list, query, retmax
@@ -68,12 +59,13 @@ def _(db_dropdown, mo, query, retmax):
         mo.hstack([
             db_dropdown, 
             query,
-        ], align="stretch", widths=[1, 10]),
-        retmax,
+            retmax,
+        ], align="center", justify="center", widths=[1, 10, 3]),
+        # retmax,
         mo.md(f"From the **{db_dropdown.value}** database, I want to search for the term").center(),
         mo.md(f"## {mo.icon('svg-spinners:bouncing-ball')} {query.value} {mo.icon('svg-spinners:bouncing-ball')}").center(),
         mo.md(f"while limiting the results to **{retmax.value}** records.").center()
-    ])
+    ], align="center")
     return
 
 
@@ -136,7 +128,7 @@ def _(Entrez, Path, SeqIO, mo, pl):
             for id in id_list:
                 bar.update(title="Downloading files", subtitle=f"Fetching GBK file for {id}")
                 download_genbank_record(id, bar)
-        
+
             bar.update(title="Download complete", subtitle=f"Files saved to {Path.home() / 'entrez_data'}")
 
     def batch_download_fasta(id_list: list) -> None:
@@ -269,7 +261,8 @@ def _(fa_download_btn, gb_download_btn, mo, table):
             mo.icon('line-md:downloading-loop'),
             fa_download_btn, 
             gb_download_btn
-        ], justify="start", align="center") 
+        ], justify="start", align="center"),
+        mo.md("Run the app locally to enabled local downloads.")
     ])
     return
 
@@ -292,6 +285,14 @@ def _(batch_download_fasta, batch_download_gb, mo, table):
         on_click=batch_download_fasta,
     )
     return fa_download_btn, gb_download_btn
+
+
+@app.cell
+def _(mo):
+    mo.md(f"""
+        Created by Jan Samson [{mo.icon('garden:github-stroke-12')}](https://github.com/dagsdags212/entrez-search)
+    """).right()
+    return
 
 
 @app.cell
